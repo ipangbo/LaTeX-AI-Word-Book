@@ -8,13 +8,13 @@
 \setmainlanguage{english}
 \setotherlanguage{english}
 \RequirePackage{etoolbox}
-\RequirePackage{xparse} % ✅ 为了支持末尾可选参数
+\RequirePackage{xparse} % 为了支持末尾可选参数
 
 %% 排版与颜色
 \RequirePackage{geometry}
 \RequirePackage{xcolor}
 \RequirePackage{tcolorbox}
-\RequirePackage{enumitem}   % 自定义列表
+\RequirePackage{enumitem}
 \tcbuselibrary{skins,breakable}
 
 %% 字体配置（使用细体Sans）
@@ -58,29 +58,37 @@
   colback=sentencebg,
   colframe=black!40,
   enhanced,
-  % breakable,
-  boxrule=0.3pt,arc=4pt,
-  left=6pt,right=6pt,top=10pt,bottom=4pt
+  boxrule=0.3pt,
+  arc=4pt,
+  left=6pt,
+  right=6pt,
+  top=10pt,
+  bottom=4pt
 }
 
-%% 标题与光晕装饰
+%% ================== 标题系统（支持 subtitle） ==================
 \RequirePackage{titling}
 \RequirePackage{tikz}
 
-% 主副标题样式
+% 保存副标题
+\newcommand{\aiwb@subtitle}{}
+\NewDocumentCommand{\subtitle}{m}{%
+  \gdef\aiwb@subtitle{#1}%
+}
+
+% 主标题样式
 \pretitle{%
-  % 在标题同页绘制光晕
-  % \begin{tikzpicture}[remember picture,overlay]
-  %   \shade[inner color=orange!30, outer color=white]
-  %     (current page.north east) circle (4cm);
-  % \end{tikzpicture}%
-  \vspace*{3cm}% 与顶部留白
-  % 强制无首行缩进，左对齐
+  \vspace*{3cm}%
   \noindent\sffamily\fontsize{48}{60}\selectfont
 }
+
+% 主标题后：如果有 subtitle 就显示
 \posttitle{%
-  \par\vspace{0.5em}
-  \noindent\sffamily\fontsize{24}{30}\selectfont
+  \par\vspace{0.5em}%
+  \ifstrempty{\aiwb@subtitle}{}{%
+    \noindent\sffamily\fontsize{24}{30}\selectfont
+    \aiwb@subtitle\par
+  }%
 }
 
 % 去掉默认日期位置
@@ -88,9 +96,10 @@
 % 调整标题整体垂直位置
 \setlength{\droptitle}{-1cm}
 
-%% 单词命令：渲染一行条目
-% ✅ 新用法：\Word{plague}{n.}{瘟疫，灾祸}[pleɪɡ]
-% 不写 [..] 就保持原来效果
+%% ================== 单词命令 ==================
+% 用法：
+% \Word{plague}{n.}{瘟疫，灾祸}[pleɪɡ]
+% 不写 [IPA] 也完全兼容旧写法
 \NewDocumentCommand{\Word}{m m m o}{%
   \item \textbf{#1}%
   % IPA：显示在单词和词性中间（DejaVu Sans）
@@ -100,7 +109,7 @@
   {\small (\textit{#2})} -- #3%
 }
 
-%% 句子命令：若有词列表，则换行并缩进对齐
+%% ================== 句子块 ==================
 \newcommand{\SentenceBlock}[4][]{%
   \begin{tcolorbox}
     \noindent\textbf{#2}\par
