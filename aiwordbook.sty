@@ -1,0 +1,409 @@
+% aiwordbook.sty  (Skeuomorphic + Modern redesign, NO shadow, key-safe, global page background)
+\ProvidesPackage{aiwordbook}[2026/01/06 AI Word Book Style (Skeuo-Modern NoShadow KeySafe GlobalBG AutoSticker)]
+
+%% =========================================================
+%% Theme options (default: Blue)
+%% Usage: \usepackage[Indigo]{aiwordbook}
+%% Available: Blue, Orange, Cyan, Indigo, Amber, Green, BlueGrey
+%% =========================================================
+\newcommand*\aiwb@accenthex{2F6FED}      % Blue
+\newcommand*\aiwb@accenttwohex{FFB020}   % warm secondary
+\newcommand*\aiwb@chiphex{E8F0FF}        % light chip bg (blue-ish)
+
+\DeclareOption{Blue}{%
+  \renewcommand*\aiwb@accenthex{2F6FED}%
+  \renewcommand*\aiwb@accenttwohex{FFB020}%
+  \renewcommand*\aiwb@chiphex{E8F0FF}%
+}
+\DeclareOption{Orange}{%
+  \renewcommand*\aiwb@accenthex{F97316}% Orange-500
+  \renewcommand*\aiwb@accenttwohex{3B82F6}% Blue-500 as contrast
+  \renewcommand*\aiwb@chiphex{FFF7ED}% Orange-50
+}
+\DeclareOption{Cyan}{%
+  \renewcommand*\aiwb@accenthex{06B6D4}% Cyan-500
+  \renewcommand*\aiwb@accenttwohex{F59E0B}% Amber-500
+  \renewcommand*\aiwb@chiphex{ECFEFF}% Cyan-50
+}
+\DeclareOption{Indigo}{%
+  \renewcommand*\aiwb@accenthex{4F46E5}% Indigo-600
+  \renewcommand*\aiwb@accenttwohex{F59E0B}% Amber-500
+  \renewcommand*\aiwb@chiphex{EEF2FF}% Indigo-50
+}
+\DeclareOption{Amber}{%
+  \renewcommand*\aiwb@accenthex{F59E0B}% Amber-500
+  \renewcommand*\aiwb@accenttwohex{2563EB}% Blue-600
+  \renewcommand*\aiwb@chiphex{FFFBEB}% Amber-50
+}
+\DeclareOption{Green}{%
+  \renewcommand*\aiwb@accenthex{22C55E}% Green-500
+  \renewcommand*\aiwb@accenttwohex{F59E0B}% Amber-500
+  \renewcommand*\aiwb@chiphex{ECFDF5}% Green-50
+}
+\DeclareOption{BlueGrey}{%
+  \renewcommand*\aiwb@accenthex{64748B}% Slate-500 (blue grey)
+  \renewcommand*\aiwb@accenttwohex{F59E0B}% Amber-500
+  \renewcommand*\aiwb@chiphex{F1F5F9}% Slate-100
+}
+\DeclareOption*{%
+  \PackageWarning{aiwordbook}{Unknown option '\CurrentOption'. Using default theme Blue}%
+}
+\ProcessOptions\relax
+
+%% ============== 基础依赖 ==============
+\RequirePackage{xeCJK}
+\RequirePackage{fontspec}
+\RequirePackage{polyglossia}
+\setmainlanguage{english}
+\setotherlanguage{english}
+
+\RequirePackage{xparse}
+\RequirePackage{etoolbox}
+\RequirePackage{geometry}
+\RequirePackage{xcolor}
+\RequirePackage{microtype}
+\RequirePackage{setspace}
+\RequirePackage{enumitem}
+\RequirePackage{titling}
+
+\RequirePackage{tikz}
+\RequirePackage{changepage}
+\usetikzlibrary{calc,patterns}
+
+% ✅ 用于给每一页叠加背景
+\RequirePackage{eso-pic}
+
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins,breakable,most}
+
+%% ============== 字体（现代：无衬线为主） ==============
+\IfFontExistsTF{Inter}{
+  \setmainfont{Inter}[
+    UprightFont = * Regular,
+    ItalicFont  = * Italic,
+    BoldFont    = * SemiBold
+  ]
+}{
+  \IfFontExistsTF{SF Pro Text}{
+    \setmainfont{SF Pro Text}
+  }{
+    \IfFontExistsTF{Helvetica Neue}{
+      \setmainfont{Helvetica Neue}
+    }{
+      \setmainfont{TeX Gyre Heros}
+    }
+  }
+}
+
+\IfFontExistsTF{Noto Sans CJK SC}{
+  \setCJKmainfont{Noto Sans CJK SC}
+  \setCJKsansfont{Noto Sans CJK SC}
+}{
+  \IfFontExistsTF{Microsoft YaHei}{
+    \setCJKmainfont{Microsoft YaHei}
+    \setCJKsansfont{Microsoft YaHei}
+  }{
+    \IfFontExistsTF{PingFang SC}{
+      \setCJKmainfont{PingFang SC}
+      \setCJKsansfont{PingFang SC}
+    }{
+      \setCJKmainfont{Heiti SC}
+      \setCJKsansfont{Heiti SC}
+    }
+  }
+}
+
+%% ============== IPA 字体（DejaVu Sans） ==============
+% 用于渲染 IPA Unicode（ɪ ʊ θ ð ʃ ʒ ɑː ...）
+\IfFontExistsTF{DejaVu Sans}{
+  \newfontfamily\aiwbIPAFont{DejaVu Sans}[Scale=MatchLowercase]
+}{
+  % 若系统无 DejaVu Sans，则退回用当前无衬线字体
+  \newcommand{\aiwbIPAFont}{\sffamily}
+}
+
+%% ============== 页面版式 ==============
+\geometry{
+  top=18mm,
+  bottom=20mm,
+  left=20mm,
+  right=20mm,
+  headsep=6mm,
+  footskip=10mm
+}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setstretch{1.12}
+
+%% ============== 配色（主题化） ==============
+\definecolor{aiwbPaper}{HTML}{FCFBF8}
+\definecolor{aiwbInk}{HTML}{1F2937}
+\definecolor{aiwbMute}{HTML}{6B7280}
+\definecolor{aiwbFrame}{HTML}{D6D3CE}
+\definecolor{aiwbDivider}{HTML}{BBBBBB}
+
+% ✅ Theme-dependent
+\definecolor{aiwbAccent}{HTML}{\aiwb@accenthex}
+\definecolor{aiwbAccent2}{HTML}{\aiwb@accenttwohex}
+\definecolor{aiwbChip}{HTML}{\aiwb@chiphex}
+
+\color{aiwbInk}
+
+%% ✅ 改：全局“单词计数器”（累计 Word 的总数）
+\newcounter{aiwbWord}
+%% ✅ 内部：当前 SentenceBlock 里 Word 的数量（用于算范围）
+\newcounter{aiwbBlockWordCount}
+%% ✅ 内部：本块显示的范围文本（如 14-15 或 14）
+\newcommand{\aiwbWordRange}{}
+\newcommand{\aiwbWordStart}{}
+\newcommand{\aiwbWordEnd}{}
+
+%% ============== 全页背景：右上光晕 + 轻纹理（应用到所有页面） ==============
+\newcommand{\aiwb@pagebg}{%
+  \begin{tikzpicture}[remember picture,overlay]
+    % 右上淡光晕
+    \shade[inner color=aiwbAccent!16, outer color=white]
+      ($(current page.north east)+(-0.9cm,-0.9cm)$) circle (4.6cm);
+    % 全页轻纹理
+    \fill[aiwbAccent!2,pattern=north east lines,pattern color=aiwbAccent!10]
+      (current page.south west) rectangle (current page.north east);
+  \end{tikzpicture}%
+}
+
+% ✅ 背景层叠加到每一页
+\AddToShipoutPictureBG{%
+  \aiwb@pagebg
+}
+
+%% ============== 列表（紧凑） ==============
+\setlist[itemize]{
+  topsep=4pt,
+  itemsep=3pt,
+  parsep=0pt,
+  partopsep=0pt
+}
+
+%% ============== 标题：主标题 / 副标题分离 ==============
+\newcommand{\aiwb@subtitle}{} % 默认空
+\NewDocumentCommand{\subtitle}{m}{\gdef\aiwb@subtitle{#1}}
+
+%% ============== 标题页（仅排版，不再单独画背景，避免叠加） ==============
+\pretitle{%
+  \vspace*{2.6cm}
+  \noindent\sffamily\bfseries\fontsize{26}{30}\selectfont
+}
+\posttitle{%
+  \par\vspace{0.45em}%
+  \ifstrempty{\aiwb@subtitle}{}{%
+    \noindent\sffamily\fontsize{18}{24}\selectfont \aiwb@subtitle\par
+  }%
+}
+\predate{}\postdate{}
+\setlength{\droptitle}{-1.0cm}
+
+%% ============== 纸卡样式（无阴影） ==============
+\tcbset{
+  aiwb/card/.style={
+    enhanced,
+    breakable=false,
+    colback=aiwbPaper,
+    colframe=aiwbFrame,
+    boxrule=0.5pt,
+    arc=7pt,
+    sharp corners=west,      % 左侧直角
+    rounded corners=east,    % 右侧圆角
+    left=10pt,right=10pt,top=10pt,bottom=10pt,
+    before skip=10pt, after skip=12pt,
+    borderline west={2.2pt}{0pt}{aiwbAccent!85},
+  }
+}
+
+%% ============== 右上角时间戳预留宽度（用于避免重叠） ==============
+\newlength{\aiwbBadgeWidth}
+\setlength{\aiwbBadgeWidth}{23mm}
+
+%% ============== 英文贴纸样式（块级，可换行） ==============
+% ✅ 浅色底 + 深色字（高可读）；跟随主题色
+\tcbset{
+  aiwb/sticker/.style={
+    enhanced,
+    colback=aiwbAccent!8,
+    colframe=aiwbAccent!45,
+    coltext=aiwbAccent!55!black,
+    boxrule=0.5pt,
+    arc=6pt,
+    left=8pt,right=8pt,top=4pt,bottom=4pt,
+    boxsep=0pt,
+    before skip=0pt,
+    after skip=0pt,
+    fontupper=\sffamily\bfseries\fontsize{14}{17}\selectfont,
+  }
+}
+
+%% ============== 英文贴纸（行内版，宽度随内容） ==============
+\newtcbox{\aiwbstickerinline}{on line, aiwb/sticker}
+
+%% ============== ✅ 英文贴纸自动模式：短句自适应宽度，长句自动换行并限宽避开时间戳 ==============
+\newsavebox{\aiwb@measurebox}
+\newlength{\aiwb@textW}
+\newlength{\aiwb@maxStickerW}
+
+\newlength{\aiwbStickerPad}
+\setlength{\aiwbStickerPad}{22pt}
+
+\newcommand{\aiwbStickerAuto}[2]{%
+  \sbox{\aiwb@measurebox}{{\sffamily\bfseries\fontsize{13}{15}\selectfont #2}}%
+  \setlength{\aiwb@textW}{\wd\aiwb@measurebox}%
+  \ifdim\aiwb@textW<\dimexpr #1-\aiwbStickerPad\relax
+    \aiwbstickerinline{#2}%
+  \else
+    \begin{tcolorbox}[aiwb/sticker, width=#1]
+      \raggedright #2
+    \end{tcolorbox}%
+  \fi
+}
+
+%% ============== 词条 chip ==============
+\newtcbox{\aiwbchip}{on line, tcbox raise base,
+  colback=aiwbChip,
+  colframe=aiwbAccent!35,
+  boxrule=0.35pt,
+  arc=4pt,
+  left=7pt,right=7pt,top=3pt,bottom=3pt,
+  boxsep=0pt
+}
+\newcommand{\aiwbpos}[1]{{\color{aiwbMute}\footnotesize\textit{#1}}}
+
+%% Word（释义强制深色） + 末尾可选 IPA：[pleɪɡ]
+\NewDocumentCommand{\Word}{m m m o}{%
+  \stepcounter{aiwbWord}%
+  \item
+  \aiwbchip{\vphantom{Hg}\textbf{#1}}%
+  \IfNoValueF{#4}{%
+    \hspace{0.2em}\textcolor{aiwbMute}{{\aiwbIPAFont\small /#4/}}%
+  }%
+  \,\textcolor{aiwbMute}{\footnotesize\textit{(#2)}}%
+  \;\textcolor{aiwbMute}{—}\;%
+  \textcolor{aiwbInk}{#3}%
+}
+
+%% ============== SentenceBlock ==============
+\NewDocumentCommand{\SentenceBlock}{O{} m m m}{%
+  % ===== 预扫描 #4：只数本块有多少个 \Word（不排版）=====
+  \setcounter{aiwbBlockWordCount}{0}%
+  \begingroup
+    \RenewDocumentCommand{\Word}{m m m o}{\stepcounter{aiwbBlockWordCount}}%
+    #4%
+  \endgroup
+
+  % ===== 生成范围标签（如 14 或 14-15）；无 Word 则置空 =====
+  \renewcommand{\aiwbWordRange}{}%
+  \renewcommand{\aiwbWordStart}{}%
+  \renewcommand{\aiwbWordEnd}{}%
+  \ifnum\value{aiwbBlockWordCount}>0\relax
+    \edef\aiwbWordStart{\number\numexpr\value{aiwbWord}+1\relax}%
+    \edef\aiwbWordEnd{\number\numexpr\value{aiwbWord}+\value{aiwbBlockWordCount}\relax}%
+    \ifnum\value{aiwbBlockWordCount}=1\relax
+      \renewcommand{\aiwbWordRange}{\aiwbWordStart}%
+    \else
+      \renewcommand{\aiwbWordRange}{\aiwbWordStart-\aiwbWordEnd}%
+    \fi
+  \fi
+
+  \begin{tcolorbox}[
+    aiwb/card,
+    overlay={
+      \begin{scope}
+        \clip (interior.south west) rectangle (interior.north east);
+        \fill[aiwbAccent!1,pattern=dots,pattern color=aiwbAccent!10]
+          (interior.south west) rectangle (interior.north east);
+      \end{scope}
+
+      \ifstrempty{#1}{}{
+        % 时间戳（跟随 Accent2）
+        \node[
+          anchor=north east,
+          font=\sffamily\footnotesize,
+          text=aiwbInk,
+          fill=aiwbAccent2!20,
+          draw=aiwbAccent2!40,
+          rounded corners=3pt,
+          inner xsep=6pt, inner ysep=3pt
+        ] at ($(frame.north east)+(-7pt,-7pt)$) {#1};
+
+        % 单词范围（跟随 Accent）
+        \ifstrempty{\aiwbWordRange}{}{%
+          \node[
+            anchor=north east,
+            font=\sffamily\footnotesize,
+            text=aiwbInk,
+            fill=aiwbAccent!14,
+            draw=aiwbAccent!35,
+            rounded corners=3pt,
+            inner xsep=6pt, inner ysep=3pt
+          ] at ($(frame.north east)+(-7pt,-27pt)$) {\#\aiwbWordRange};
+        }%
+      }
+    }
+  ]
+    \ifstrempty{#1}{
+      \setlength{\aiwb@maxStickerW}{\linewidth}
+    }{
+      \setlength{\aiwb@maxStickerW}{\dimexpr\linewidth-\aiwbBadgeWidth\relax}
+    }%
+
+    \begingroup
+    \parskip=0pt
+
+    \aiwbStickerAuto{\aiwb@maxStickerW}{#2}\par
+    \kern6pt
+
+    {\sffamily\fontsize{12.2}{16}\selectfont
+      \begingroup
+      \leftskip=6pt
+      \rightskip=0pt
+      \parindent=0pt
+      \noindent #3\par
+      \endgroup
+    }
+
+    \kern12pt
+    {\color{aiwbDivider}\hrule height 0.6pt}
+    \kern8pt
+
+    \endgroup
+
+    \if\relax\detokenize{#4}\relax
+    \else
+      {\sffamily\bfseries\color{aiwbMute}Words}\par
+      \vspace{3pt}
+      \begin{itemize}[label={},leftmargin=0.6em]
+        #4
+      \end{itemize}
+    \fi
+  \end{tcolorbox}
+}
+
+%% ============== 可选：章节标题更现代 ==============
+\RequirePackage{titlesec}
+\titleformat{\section}
+  {\sffamily\bfseries\Large}
+  {}
+  {0pt}
+  {\color{aiwbInk}}
+\titlespacing*{\section}{0pt}{10pt}{6pt}
+
+%% ============== 可选：分隔带 ==============
+\NewDocumentCommand{\AIDivider}{m}{%
+  \begin{tcolorbox}[
+    enhanced,
+    colback=aiwbAccent!7,
+    colframe=aiwbAccent!18,
+    boxrule=0.5pt,
+    arc=7pt,
+    left=10pt,right=10pt,top=8pt,bottom=8pt,
+    before skip=10pt,after skip=10pt
+  ]
+    {\sffamily\bfseries\color{aiwbInk}#1}
+  \end{tcolorbox}
+}

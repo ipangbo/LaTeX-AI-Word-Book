@@ -1,0 +1,120 @@
+% aiwordbook.sty
+\ProvidesPackage{aiwordbook}[2025/04/24 AI Word Book Style]
+
+%% 字体与语言
+\RequirePackage{xeCJK}
+\RequirePackage{fontspec}
+\RequirePackage{polyglossia}
+\setmainlanguage{english}
+\setotherlanguage{english}
+\RequirePackage{etoolbox}
+\RequirePackage{xparse} % ✅ 为了支持末尾可选参数
+
+%% 排版与颜色
+\RequirePackage{geometry}
+\RequirePackage{xcolor}
+\RequirePackage{tcolorbox}
+\RequirePackage{enumitem}   % 自定义列表
+\tcbuselibrary{skins,breakable}
+
+%% 字体配置（使用细体Sans）
+\IfFontExistsTF{Noto Sans CJK SC}{
+  \setCJKmainfont{Noto Sans CJK SC}
+  \setCJKsansfont{Noto Sans CJK SC}
+}{
+  \IfFontExistsTF{Microsoft YaHei}{
+    \setCJKmainfont{Microsoft YaHei}
+    \setCJKsansfont{Microsoft YaHei}
+  }{
+    \IfFontExistsTF{PingFang SC}{
+      \setCJKmainfont{PingFang SC}
+      \setCJKsansfont{PingFang SC}
+    }{
+      \setCJKmainfont{Heiti SC}
+      \setCJKsansfont{Heiti SC}
+    }
+  }
+}
+
+%% ============== IPA 字体（DejaVu Sans） ==============
+% 用于渲染 IPA Unicode（ɪ ʊ θ ð ʃ ʒ ɑː ...）
+\IfFontExistsTF{DejaVu Sans}{
+  \newfontfamily\aiwbIPAFont{DejaVu Sans}[Scale=MatchLowercase]
+}{
+  % 若系统无 DejaVu Sans，则退回用当前字体
+  \newcommand{\aiwbIPAFont}{}
+}
+
+%% 页面设置
+\geometry{margin=25mm}
+\pagestyle{plain}
+
+%% 颜色定义
+\definecolor{sentencebg}{HTML}{F4F1EB}
+\definecolor{wordrowbg}{HTML}{E6EEF8}
+
+%% tcolorbox 设置
+\tcbset{
+  colback=sentencebg,
+  colframe=black!40,
+  enhanced,
+  % breakable,
+  boxrule=0.3pt,arc=4pt,
+  left=6pt,right=6pt,top=10pt,bottom=4pt
+}
+
+%% 标题与光晕装饰
+\RequirePackage{titling}
+\RequirePackage{tikz}
+
+% 主副标题样式
+\pretitle{%
+  % 在标题同页绘制光晕
+  % \begin{tikzpicture}[remember picture,overlay]
+  %   \shade[inner color=orange!30, outer color=white]
+  %     (current page.north east) circle (4cm);
+  % \end{tikzpicture}%
+  \vspace*{3cm}% 与顶部留白
+  % 强制无首行缩进，左对齐
+  \noindent\sffamily\fontsize{48}{60}\selectfont
+}
+\posttitle{%
+  \par\vspace{0.5em}
+  \noindent\sffamily\fontsize{24}{30}\selectfont
+}
+
+% 去掉默认日期位置
+\predate{}\postdate{}
+% 调整标题整体垂直位置
+\setlength{\droptitle}{-1cm}
+
+%% 单词命令：渲染一行条目
+% ✅ 新用法：\Word{plague}{n.}{瘟疫，灾祸}[pleɪɡ]
+% 不写 [..] 就保持原来效果
+\NewDocumentCommand{\Word}{m m m o}{%
+  \item \textbf{#1}%
+  % IPA：显示在单词和词性中间（DejaVu Sans）
+  \IfNoValueF{#4}{%
+    \hspace{0.3em}{\aiwbIPAFont\small /#4/}\hspace{0.3em}%
+  }%
+  {\small (\textit{#2})} -- #3%
+}
+
+%% 句子命令：若有词列表，则换行并缩进对齐
+\newcommand{\SentenceBlock}[4][]{%
+  \begin{tcolorbox}
+    \noindent\textbf{#2}\par
+    \vspace{5pt}
+    \noindent#3\par
+    \vspace{10pt}
+    \if\relax\detokenize{#4}\relax
+      % 无词时跳过
+    \else
+      \noindent\textbf{Words:}\par
+      \begin{itemize}[label={},leftmargin=2em,nosep]
+        #4
+      \end{itemize}
+    \fi
+    \hfill\emph{#1}
+  \end{tcolorbox}\par\medskip
+}
