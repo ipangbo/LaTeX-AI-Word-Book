@@ -274,17 +274,27 @@
 }
 \newcommand{\aiwbpos}[1]{{\color{aiwbMute}\footnotesize\textit{#1}}}
 
-%% Word（释义强制深色） + 末尾可选 IPA：[pleɪɡ]
-\NewDocumentCommand{\Word}{m m m o}{%
+%% =========================================================
+%% ✅ Word：升级为 4 个必选 + 1 个可选（IPA）
+%% 新用法：\Word{surface}{lemma}{pos}{meaning}[ipa]
+%% - surface：句中出现形式（忽略，不渲染）
+%% - lemma：原型（用于渲染 chip）
+%% - pos：词性
+%% - meaning：释义
+%% - [ipa]：可选 IPA（DejaVu Sans），显示在 lemma 与 pos 之间
+%% =========================================================
+\NewDocumentCommand{\Word}{m m m m o}{%
   \stepcounter{aiwbWord}%
   \item
-  \aiwbchip{\vphantom{Hg}\textbf{#1}}%
-  \IfNoValueF{#4}{%
-    \hspace{0.2em}\textcolor{aiwbMute}{{\aiwbIPAFont\small /#4/}}%
+  % 显示 lemma（第二个参数）
+  \aiwbchip{\vphantom{Hg}\textbf{#2}}%
+  % 可选 IPA：显示在单词与词性之间
+  \IfNoValueF{#5}{%
+    \hspace{0.2em}\textcolor{aiwbMute}{{\aiwbIPAFont\small /#5/}}%
   }%
-  \,\textcolor{aiwbMute}{\footnotesize\textit{(#2)}}%
+  \,\textcolor{aiwbMute}{\footnotesize\textit{(#3)}}%
   \;\textcolor{aiwbMute}{—}\;%
-  \textcolor{aiwbInk}{#3}%
+  \textcolor{aiwbInk}{#4}%
 }
 
 %% ============== SentenceBlock ==============
@@ -292,7 +302,8 @@
   % ===== 预扫描 #4：只数本块有多少个 \Word（不排版）=====
   \setcounter{aiwbBlockWordCount}{0}%
   \begingroup
-    \RenewDocumentCommand{\Word}{m m m o}{\stepcounter{aiwbBlockWordCount}}%
+    % ✅ 同步新签名：m m m m o
+    \RenewDocumentCommand{\Word}{m m m m o}{\stepcounter{aiwbBlockWordCount}}%
     #4%
   \endgroup
 
