@@ -135,6 +135,8 @@ classic.sty
 * `Green`
 * `BlueGrey`
 
+电视剧按每季集数轮换主题色：第 1–7 集依次使用 `Blue`、`Orange`、`Cyan`、`Indigo`、`Amber`、`Green`、`BlueGrey`，第 8 集从 `Blue` 重新循环。每季从第 1 集重新计数；仓库缺少某集时仍按实际集数选色。电影不受此规则影响。
+
 ---
 
 ## 5. 切换到 classic 风格（classic.sty）
@@ -191,4 +193,3 @@ classic.sty
 ```tex
 \usepackage{classic}
 ```
-
